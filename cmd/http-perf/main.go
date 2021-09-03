@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -17,9 +19,17 @@ func main() {
 }
 
 func runLambda() {
+	iterationsStr := os.Getenv("ITERATIONS")
+	if len(iterationsStr) == 0 {
+		panic("ITERATIONS env var is not set!")
+	}
+
+	iterationsUint, _ := strconv.ParseUint(iterationsStr, 10, 32)
+	iterations := int(iterationsUint)
+
 	start := time.Now()
 
-	runHttpTests(1000)
+	runHttpTests(iterations)
 
 	elapsed := time.Since(start)
 	fmt.Println(elapsed)
@@ -46,7 +56,7 @@ func runHttpTests(loopAmount int) {
 func runHttpRequest(iteration int) ([]byte, error) {
 	const url = "https://h3km0z2853.execute-api.eu-central-1.amazonaws.com/daniele-node"
 
-	var jsonStr = fmt.Sprintf(`{"Id":"%v-%v", "Fullname":"%v"}`, iteration, time.Now().UTC().Format(time.RFC3339Nano), uuid.New())
+	var jsonStr = fmt.Sprintf(`{"Id":"GO-%v-%v", "Fullname":"%v"}`, iteration, time.Now().UTC().Format(time.RFC3339Nano), uuid.New())
 
 	fmt.Println("Doing request:", jsonStr)
 

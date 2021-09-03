@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,20 +18,38 @@ func main() {
 func runLambda() {
 	start := time.Now()
 
-	runHttpTests(50)
+	runHttpTests(10)
 
 	elapsed := time.Since(start)
 	fmt.Println(elapsed)
 }
 
 func runHttpTests(loopAmount int) {
-	for i := 0; i < loopAmount; i++ {
-		_, err := runHttpRequest(i)
+	var wg sync.WaitGroup
+	wg.Add(loopAmount)
 
-		if err != nil {
-			fmt.Println("Http Error!!!")
-		}
+	for i := 0; i < loopAmount; i++ {
+		go func(i int) {
+			defer wg.Done()
+			_, err := runHttpRequest(i)
+
+			if err != nil {
+				fmt.Println("Http Error!!!")
+			}
+		}(i)
 	}
+
+	wg.Wait()
+
+	// doing all one by one >>
+	// for i := 0; i < loopAmount; i++ {
+	// 	_, err := runHttpRequest(i)
+
+	// 	if err != nil {
+	// 		fmt.Println("Http Error!!!")
+	// 	}
+	// }
+	// doing all one by one <<
 }
 
 func runHttpRequest(iteration int) ([]byte, error) {

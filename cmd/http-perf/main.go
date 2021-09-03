@@ -8,17 +8,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/google/uuid"
 )
 
 func main() {
-	runLambda()
+	lambda.Start(runLambda)
 }
 
 func runLambda() {
 	start := time.Now()
 
-	runHttpTests(10)
+	runHttpTests(1000)
 
 	elapsed := time.Since(start)
 	fmt.Println(elapsed)
@@ -40,16 +41,6 @@ func runHttpTests(loopAmount int) {
 	}
 
 	wg.Wait()
-
-	// doing all one by one >>
-	// for i := 0; i < loopAmount; i++ {
-	// 	_, err := runHttpRequest(i)
-
-	// 	if err != nil {
-	// 		fmt.Println("Http Error!!!")
-	// 	}
-	// }
-	// doing all one by one <<
 }
 
 func runHttpRequest(iteration int) ([]byte, error) {
@@ -70,11 +61,6 @@ func runHttpRequest(iteration int) ([]byte, error) {
 		panic(err)
 	}
 	defer resp.Body.Close()
-
-	// fmt.Println("response Status:", resp.Status)
-	// fmt.Println("response Headers:", resp.Header)
-	//body, _ := ioutil.ReadAll(resp.Body)
-	// fmt.Println("response Body:", string(body))
 
 	return ioutil.ReadAll(resp.Body)
 }
